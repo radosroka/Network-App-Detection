@@ -5,8 +5,8 @@ CXX=g++
 CXXFLAGS=-O2 -Wall -Wextra -pedantic -std=c++14
 APP=appdetector
 
-sources= $(APP).cpp parsedata.cpp entry.cpp
-objs= $(APP).o parsedata.o entry.o
+sources= $(APP).cpp parsedata.cpp entry.cpp entrytable.cpp
+objs= $(APP).o parsedata.o entry.o entrytable.o
 
 default: $(APP)
 

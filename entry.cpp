@@ -2,28 +2,109 @@
 #include <string>
 #include <stdexcept>
 
+#include <cctype>
+
 #include "entry.hpp"
 
 using namespace std;
 
 Entry::Entry() {
-	this->line = "";
-	this->fetched = 0;
-	this->sl = "";
-	string local_addr = "";
-	string local_port = "";
-	int inode = 0;
+	this->setDefault();
+}
+
+Entry::Entry(string protocol, string line) {
+	this->setDefault();
+	this->fetchLine(protocol, line);
 }
 
 Entry::~Entry() {
 
 }
 
-void Entry::fetchLine(string line) {
+void Entry::fetchLine(string protocol, string line) {
 	this->line = line;
+	this->protocol = protocol;
 	this->fetched = 1;
+	this->parseLine();
+}
+
+void Entry::printLineDebug() {
+	cout << this->protocol << " : " << this->line << endl;
+	if (this->parsed) {
+		cout << "\t" << "selector: " << this->sl << endl;
+		cout << "\t" << "local_addr: " << this->local_addr << endl;
+		cout << "\t" << "local_port: " << this->local_port << endl;
+		cout << "\t" << "remote_addr: " << this->remote_addr << endl;
+		cout << "\t" << "remote_port: " << this->remote_port << endl;
+		cout << "\t" << "inode: " << this->inode << endl;
+	}
+}
+
+#define IPV6_HEXLEN 32
+#define IPV4_HEXLEN 8
+
+void reverseIPHexString(string& str) {
+	for (size_t i = 0; i < str.length()/2; i += 2)	{
+		char tmp = str[i];
+		str[i] = str[str.length()-1 - 1 - i];
+		str[str.length()-1 - 1 - i] = tmp;
+
+		tmp = str[i+1];
+		str[i+1] = str[str.length()-1 - i];
+		str[str.length()-1 - i] = tmp;
+	}
+}
+
+void ipv4HexaToDec(string hexa, string& ipdec) {
+	ipdec = "";
+	for (int i = 0; i < 4; i++){
+		string oct = hexa.substr(2*i, 2);
+		int dec = stoi(oct, nullptr, 16);
+		ipdec.append(to_string(dec) + ":");
+	}
+	ipdec.pop_back();
+}
+
+void formatIPV6(string ipv6, string& ip) {
+	ip = "";
+	for (size_t i = 0; i < ipv6.length(); i++) {
+		if (((i % 4) == 0) && i != 0) ip.push_back(':');
+		ip.push_back(ipv6[i]);
+	}
 }
 
 void Entry::parseLine(){
-	if(!this->fetched) runtime_error(string(__func__) + string(": already fetched"));
+	if (!this->fetched) runtime_error(string(__func__) + string(": already fetched"));
+	this->parsed = 1;
+
+	size_t pos = 0;
+	size_t end = 0;
+	string hexa = "";
+
+	this->sl = stoi(this->line, &pos);
+	pos += 2;
+
+	end = this->line.find_first_of(':', pos);
+	hexa = this->line.substr(pos, end - pos);
+
+	reverseIPHexString(hexa);
+
+	if (hexa.length() == IPV4_HEXLEN)
+		ipv4HexaToDec(hexa, this->local_addr);
+	else if (hexa.length() == IPV6_HEXLEN)
+		formatIPV6(hexa, this->local_addr);
+	else
+		runtime_error(string(__func__) + string(": bad ip"));
+}
+
+void Entry::setDefault(){
+	this->line = "";
+	this->fetched = 0;
+	this->parsed = 0;
+	this->sl = 0;
+	this->local_addr = "";
+	this->local_port = "";
+	this->remote_addr = "";
+	this->remote_port = "";
+	this->inode = 0;
 }
