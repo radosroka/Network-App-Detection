@@ -36,6 +36,7 @@ void Entry::printLineDebug() {
 		cout << "\t" << "local_port: " << this->local_port << endl;
 		cout << "\t" << "remote_addr: " << this->remote_addr << endl;
 		cout << "\t" << "remote_port: " << this->remote_port << endl;
+		cout << "\t" << "state: " << this->state << endl;
 		cout << "\t" << "inode: " << this->inode << endl;
 	}
 }
@@ -95,6 +96,31 @@ void Entry::parseLine(){
 		formatIPV6(hexa, this->local_addr);
 	else
 		runtime_error(string(__func__) + string(": bad ip"));
+
+	pos = end + 1;
+
+	this->local_port = stoi(this->line.substr(pos, 4), &end, 16);
+	pos += 5;
+
+	end = this->line.find_first_of(':', pos);
+	hexa = this->line.substr(pos, end - pos);
+
+	reverseIPHexString(hexa);
+
+	if (hexa.length() == IPV4_HEXLEN)
+		ipv4HexaToDec(hexa, this->remote_addr);
+	else if (hexa.length() == IPV6_HEXLEN)
+		formatIPV6(hexa, this->remote_addr);
+	else
+		runtime_error(string(__func__) + string(": bad ip"));
+
+	pos = end + 1;
+
+	this->remote_port = stoi(this->line.substr(pos, 4), &end, 16);
+	pos += 5;
+
+	this->state = stoi(this->line.substr(pos, 2), &end, 16);
+	pos += 3;
 }
 
 void Entry::setDefault(){
@@ -103,8 +129,9 @@ void Entry::setDefault(){
 	this->parsed = 0;
 	this->sl = 0;
 	this->local_addr = "";
-	this->local_port = "";
+	this->local_port = 0;
 	this->remote_addr = "";
-	this->remote_port = "";
+	this->remote_port = 0;
+	this->state = -1;
 	this->inode = 0;
 }

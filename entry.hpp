@@ -25,9 +25,10 @@ private:
 	int sl;
 	string protocol;
 	string local_addr;
-	string local_port;
+	int local_port;
 	string remote_addr;
-	string remote_port;
+	int remote_port;
+	int state;
 	int inode;
 
 	void setDefault();
