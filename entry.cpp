@@ -28,6 +28,38 @@ void Entry::fetchLine(string protocol, string line) {
 	this->parseLine();
 }
 
+string Entry::getState(){
+
+	if (this->protocol == "udp") return "";
+
+	switch(this->state) {
+		case TCP_ESTABLISHED:
+			return "ESTABLISHED";
+		case TCP_SYN_SENT:
+			return "SYN_SENT";
+		case TCP_SYN_RECV:
+			return "SYN_RECV";
+		case TCP_FIN_WAIT1:
+			return "FIN_WAIT1";
+		case TCP_FIN_WAIT2:
+			return "FIN_WAIT2";
+		case TCP_TIME_WAIT:
+			return "TIME_WAIT";
+		case TCP_CLOSE:
+			return "CLOSE";
+		case TCP_CLOSE_WAIT:
+			return "CLOSE_WAIT";
+		case TCP_LAST_ACK:
+			return "LAST_ACK";
+		case TCP_LISTEN:
+			return "LISTEN";
+		case TCP_CLOSING:
+			return "CLOSING";
+		default:
+			return "";
+	}
+}
+
 void Entry::printLineDebug() {
 	cout << this->protocol << " : " << this->line << endl;
 	if (this->parsed) {
@@ -36,7 +68,7 @@ void Entry::printLineDebug() {
 		cout << "\t" << "local_port: " << this->local_port << endl;
 		cout << "\t" << "remote_addr: " << this->remote_addr << endl;
 		cout << "\t" << "remote_port: " << this->remote_port << endl;
-		cout << "\t" << "state: " << this->state << endl;
+		cout << "\t" << "state: " << this->getState() << endl;
 		cout << "\t" << "inode: " << this->inode << endl;
 	}
 }
@@ -120,7 +152,10 @@ void Entry::parseLine(){
 	pos += 5;
 
 	this->state = stoi(this->line.substr(pos, 2), &end, 16);
-	pos += 3;
+	pos += 57;
+
+	this->inode = stoi(this->line.substr(pos, 10), &end, 10);
+
 }
 
 void Entry::setDefault(){
