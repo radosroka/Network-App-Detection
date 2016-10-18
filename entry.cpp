@@ -107,7 +107,7 @@ void formatIPV6(string ipv6, string& ip) {
 }
 
 void Entry::parseLine(){
-	if (!this->fetched) runtime_error(string(__func__) + string(": already fetched"));
+	if (!this->fetched) throw runtime_error(string(__func__) + string(": already fetched"));
 	this->parsed = 1;
 
 	size_t pos = 0;
@@ -144,7 +144,7 @@ void Entry::parseLine(){
 	else if (hexa.length() == IPV6_HEXLEN)
 		formatIPV6(hexa, this->remote_addr);
 	else
-		runtime_error(string(__func__) + string(": bad ip"));
+		throw runtime_error(string(__func__) + string(": bad ip"));
 
 	pos = end + 1;
 
