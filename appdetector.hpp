@@ -16,12 +16,19 @@ private:
 	string * files;
 	uint num_files;
 
-	string sParam;
-	string iParam;
-	string fParam;
+	string options[3];
+
+	enum {
+		PARAM_S,
+		PARAM_I,
+		PARAM_F
+	};
+
+	std::vector<string> filters;
 
 	string getProtocol(string file);
 	void parseFiles();
+	void parseFilter();
 };
 
 #endif

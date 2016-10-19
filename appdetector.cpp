@@ -26,30 +26,48 @@ AppDetector::AppDetector(int argc, char **argv, uint num_files, string files[]) 
 
 	this->parseFiles();
 
-	if (argc != ARGS)
+	if (argc < ARGS)
 		throw runtime_error(string(__func__) + string(": args problem"));
 
-	int sFlag = 0;
-	int iFlag = 0;
-	int fFlag = 0;
+	for (int i = 0; i < 3; i++) this->options[i] = "";
 
-	for (int i = 1; i < argc; i = i + 2) {
-		if (argv[i] == "-s") {
-			this->sParam = argv[i + 1];
-			sFlag = 1;
-		} else if (argv[i] == "-i") {
-			this->iParam = argv[i + 1];
-			iFlag = 1;
-		} else if (argv[i] == "-f") {
-			this->fParam = argv[i + 1];
-			fFlag = 1;
+	string options [] {
+		"-s",
+		"-i",
+		"-f"
+	};
+
+	int test = 0;
+	for (int i = 1; i < argc; i++) {
+		test = 0;
+		for (int j = 0; j < 3; j++) {
+			if ((i < argc - 1) && (options[j] == argv[i])) {
+				this->options[j] = argv[++i];
+				test = 1;
+				if (j == this->PARAM_F) {
+					for (i++; i < argc; i++) {
+						if (argv[i][0] == '-') {
+							i--;
+							break;
+						}
+						this->options[j] += argv[i];
+					}
+				}
+				
+			}
 		}
+
+		if (!test)
+			throw runtime_error(string(__func__) + string(": bad params"));
 	}
 
-	if (!sFlag || !iFlag || !fFlag)
-		throw runtime_error(string(__func__) + string(": some parameter is missing"));
+	for (int i = 0; i < 3; i++)
+		if (this->options[i] == "")
+	 		throw runtime_error(string(__func__) + string(": some parameter is missing"));
 
-	
+	//for (int i = 0; i < 3; i++) cout << this->options[i] << endl;	
+
+	this->parseFilter();
 
 }
 
@@ -84,6 +102,25 @@ void AppDetector::parseFiles() {
 	}
 }
 
+void AppDetector::parseFilter() {	
+
+	string delim = ",";
+	string str = this->options[this->PARAM_F];
+	vector<string> tokens;
+
+	size_t prev = 0, pos = 0;
+    do
+    {
+        pos = str.find(delim, prev);
+        if (pos == string::npos) pos = str.length();
+        string token = str.substr(prev, pos-prev);
+        if (!token.empty()) tokens.push_back(token);
+        prev = pos + delim.length();
+    }
+    while (pos < str.length() && prev < str.length());
+    this->filters = tokens;
+}
+
 void AppDetector::printAllDump() {
 	this->table.printAllDump();
 }
@@ -92,7 +129,7 @@ int main(int argc, char **argv){
 
 	try {
 		AppDetector appdetector(argc, argv, INPUT_FILES_COUNT, input_files);
-		appdetector.printAllDump();
+		//appdetector.printAllDump();
 	} catch (const runtime_error &error) {
 		cout << error.what() << endl;
 		return 1;
