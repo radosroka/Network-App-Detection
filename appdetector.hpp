@@ -33,6 +33,7 @@ private:
 	void parseFiles();
 	void parseFilter();
 	void fillMap();
+	void sendSyslog(string msg);
 };
 
 #endif

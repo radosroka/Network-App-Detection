@@ -6,7 +6,22 @@
 
 using namespace std;
 
-enum {
+class Entry {
+public:
+	Entry();
+	Entry(string protocol, string line);
+
+	~Entry();
+
+	void fetchLine(string protocol, string line);
+	void printLineDebug();
+	void parseLine();
+	string printLineFormat();
+	long getInode();
+	int getState();
+	string getProtocol();
+
+	enum {
     TCP_ESTABLISHED = 1,
     TCP_SYN_SENT,
     TCP_SYN_RECV,
@@ -20,18 +35,7 @@ enum {
     TCP_CLOSING,   
 
     TCP_MAX_STATES
-};
-
-class Entry {
-public:
-	Entry();
-	Entry(string protocol, string line);
-
-	~Entry();
-
-	void fetchLine(string protocol, string line);
-	void printLineDebug();
-	void parseLine();
+	};
 
 private:
 	string line;
@@ -45,10 +49,10 @@ private:
 	string remote_addr;
 	int remote_port;
 	int state;
-	int inode;
+	long inode;
 
 	void setDefault();
-	string getState();
+	string getStateEnum();
 };
 
 #endif

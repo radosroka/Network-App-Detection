@@ -28,7 +28,7 @@ void Entry::fetchLine(string protocol, string line) {
 	this->parseLine();
 }
 
-string Entry::getState(){
+string Entry::getStateEnum(){
 
 	if (this->protocol == "udp") return "";
 
@@ -68,7 +68,7 @@ void Entry::printLineDebug() {
 		cout << "\t" << "local_port: " << this->local_port << endl;
 		cout << "\t" << "remote_addr: " << this->remote_addr << endl;
 		cout << "\t" << "remote_port: " << this->remote_port << endl;
-		cout << "\t" << "state: " << this->getState() << endl;
+		cout << "\t" << "state: " << this->getStateEnum() << endl;
 		cout << "\t" << "inode: " << this->inode << endl;
 	}
 }
@@ -156,6 +156,27 @@ void Entry::parseLine(){
 
 	this->inode = stoi(this->line.substr(pos, 10), &end, 10);
 
+}
+
+string Entry::printLineFormat() {
+	string result;
+
+	result =	this->protocol + " " + this->local_addr + " " +
+				to_string(this->local_port) + " " + this->remote_addr + " " +
+				to_string(this->remote_port) + " ";
+	return result;
+}
+
+long Entry::getInode() {
+	return this->inode;
+}
+
+int Entry::getState() {
+	return this->state;
+}
+
+string Entry::getProtocol() {
+	return this->protocol;
 }
 
 void Entry::setDefault(){

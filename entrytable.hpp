@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <map>
 
 #include "entry.hpp"
 
@@ -15,6 +16,7 @@ public:
 	~EntryTable();
 
 	void addRecord(string protocol, string line);
+	void printFormat(std::vector<string> &filter, std::map<long, string> &sockets);
 	void printAllDump();
 private:
 	vector<Entry*> table;

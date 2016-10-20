@@ -75,7 +75,7 @@ AppDetector::AppDetector(int argc, char **argv, uint num_files, string files[]) 
 
 	this->parseFilter();
 	this->fillMap();
-	this->printSockets();
+	//this->printSockets();
 
 }
 
@@ -165,14 +165,19 @@ void AppDetector::fillMap() {
 							string cmdline;
 							fstream f;
 							f.open(root + "/" + name + "/" + "cmdline", std::fstream::in);
-							f >> cmdline;
+							getline(f, cmdline, ' ');
 							f.close();
 							string cmd;
 							size_t p = cmdline.find_last_of("/");
+
 							if (p != cmdline.npos)
 								cmd = cmdline.substr(p+1);
 							else
 								cmd = cmdline;
+
+							if (cmd[cmd.length() - 1] == 0) cmd.pop_back();
+
+							if (cmd.find("ssh") != cmd.npos) cmd = "ssh";
 
 							this->sockets.insert(std::pair<long, string>(inode, cmd));
 						}
@@ -196,11 +201,36 @@ void AppDetector::printSockets() {
 	}
 }
 
+void AppDetector::startDetection() {
+	size_t pos = 0;
+	long interval;
+	try {
+		interval = stol(this->options[PARAM_I], &pos);
+		if (pos != this->options[PARAM_I].length())
+			throw exception();
+	} catch (const exception &e) {
+		throw runtime_error(string(__func__) + string(": bad interval -i"));
+	}
+
+	while (1) {
+
+		this->table.printFormat(this->filters, this->sockets);
+		sleep(interval);
+		break;
+	}
+
+}
+
+void AppDetector::sendSyslog(string msg) {
+
+}
+
 int main(int argc, char **argv){
 
 	try {
 		AppDetector appdetector(argc, argv, INPUT_FILES_COUNT, input_files);
 		//appdetector.printAllDump();
+		appdetector.startDetection();
 	} catch (const runtime_error &error) {
 		cout << error.what() << endl;
 		return 1;
