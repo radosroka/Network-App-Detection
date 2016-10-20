@@ -9,6 +9,7 @@ public:
 	~AppDetector();
 
 	void printAllDump();
+	void printSockets();
 	void startDetection();
 
 private:
@@ -26,9 +27,12 @@ private:
 
 	std::vector<string> filters;
 
+	std::map<long, string> sockets;
+
 	string getProtocol(string file);
 	void parseFiles();
 	void parseFilter();
+	void fillMap();
 };
 
 #endif

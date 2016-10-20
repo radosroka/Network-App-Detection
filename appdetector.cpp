@@ -1,8 +1,14 @@
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
+#include <string>
 
 #include <map>
+
+#include <dirent.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include "entry.hpp"
 #include "entrytable.hpp"
@@ -68,6 +74,8 @@ AppDetector::AppDetector(int argc, char **argv, uint num_files, string files[]) 
 	//for (int i = 0; i < 3; i++) cout << this->options[i] << endl;	
 
 	this->parseFilter();
+	this->fillMap();
+	this->printSockets();
 
 }
 
@@ -123,6 +131,69 @@ void AppDetector::parseFilter() {
 
 void AppDetector::printAllDump() {
 	this->table.printAllDump();
+}
+
+void AppDetector::fillMap() {
+	string root = "/proc";
+	const unsigned BUFF = 2048;
+
+	DIR *dir;
+	struct dirent *ent;
+	if ((dir = opendir(root.c_str())) != NULL) {
+		while ((ent = readdir (dir)) != NULL) {
+			size_t pos = 0;
+			string name = ent->d_name;
+			unsigned long num;
+			try {
+					num = stol(name, &pos, 10);
+				
+				if (num != name.npos) {
+					DIR * subdir;
+					string path = root + "/" + name + "/fd";
+					if ((subdir = opendir (path.c_str())) != NULL) {
+						struct dirent *fd;
+						while ((fd = readdir (subdir)) != NULL) {
+							if (string(fd->d_name) == "." || string(fd->d_name) == "..") continue;
+							string path_ = path + "/" + string(fd->d_name);
+							char buff[BUFF];
+							readlink(path_.c_str(), buff, BUFF);
+							string b = buff;
+							size_t ret = b.find("socket");
+							if (ret == b.npos) continue;
+							long inode = stol(b.substr(8), nullptr, 10);
+
+							string cmdline;
+							fstream f;
+							f.open(root + "/" + name + "/" + "cmdline", std::fstream::in);
+							f >> cmdline;
+							f.close();
+							string cmd;
+							size_t p = cmdline.find_last_of("/");
+							if (p != cmdline.npos)
+								cmd = cmdline.substr(p+1);
+							else
+								cmd = cmdline;
+
+							this->sockets.insert(std::pair<long, string>(inode, cmd));
+						}
+						closedir (subdir);
+					}
+				}
+
+			} catch(const exception &e) {
+				continue;
+			}
+			
+		}
+		closedir (dir);
+	}
+}
+
+void AppDetector::printSockets() {
+
+	for (std::map<long, string>::iterator i = this->sockets.begin(); i != this->sockets.end(); i++) {
+		cout << i->first << " -> " << i->second << endl;
+	}
 }
 
 int main(int argc, char **argv){
