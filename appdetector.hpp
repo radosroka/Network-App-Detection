@@ -11,6 +11,8 @@ public:
 	void printAllDump();
 	void printSockets();
 	void startDetection();
+	void compareAndSwitchTable();
+	void clearAll();
 
 private:
 	EntryTable table;
@@ -33,7 +35,8 @@ private:
 	void parseFiles();
 	void parseFilter();
 	void fillMap();
-	void sendSyslog(string msg);
+
+	void clearSockets();
 };
 
 #endif

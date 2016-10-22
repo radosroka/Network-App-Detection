@@ -13,6 +13,8 @@ public:
 
 	~Entry();
 
+	int equal(Entry &e);
+
 	void fetchLine(string protocol, string line);
 	void printLineDebug();
 	void parseLine();
@@ -20,6 +22,9 @@ public:
 	long getInode();
 	int getState();
 	string getProtocol();
+
+	int wasPrinted();
+	void printed();
 
 	enum {
     TCP_ESTABLISHED = 1,
@@ -50,6 +55,8 @@ private:
 	int remote_port;
 	int state;
 	long inode;
+
+	int print;
 
 	void setDefault();
 	string getStateEnum();

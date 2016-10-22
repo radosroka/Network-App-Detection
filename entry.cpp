@@ -93,7 +93,7 @@ void ipv4HexaToDec(string hexa, string& ipdec) {
 	for (int i = 0; i < 4; i++){
 		string oct = hexa.substr(2*i, 2);
 		int dec = stoi(oct, nullptr, 16);
-		ipdec.append(to_string(dec) + ":");
+		ipdec.append(to_string(dec) + ".");
 	}
 	ipdec.pop_back();
 }
@@ -179,6 +179,26 @@ string Entry::getProtocol() {
 	return this->protocol;
 }
 
+int Entry::wasPrinted() {
+	return this->print;
+}
+
+void Entry::printed() {
+	this->print = 1;
+}
+
+int Entry::equal(Entry &e) {
+	if (this->local_addr == e.local_addr &&
+		this->local_port == e.local_port &&
+		this->remote_addr == e.remote_addr &&
+		this->remote_port == e.remote_port) {
+
+		return 1;
+	}
+
+	return 0;
+}
+
 void Entry::setDefault(){
 	this->line = "";
 	this->fetched = 0;
@@ -190,4 +210,5 @@ void Entry::setDefault(){
 	this->remote_port = 0;
 	this->state = -1;
 	this->inode = 0;
+	this->print = 0;
 }

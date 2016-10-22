@@ -30,8 +30,6 @@ AppDetector::AppDetector(int argc, char **argv, uint num_files, string files[]) 
 	this->files = files;
 	this->num_files = num_files;
 
-	this->parseFiles();
-
 	if (argc < ARGS)
 		throw runtime_error(string(__func__) + string(": args problem"));
 
@@ -71,11 +69,7 @@ AppDetector::AppDetector(int argc, char **argv, uint num_files, string files[]) 
 		if (this->options[i] == "")
 	 		throw runtime_error(string(__func__) + string(": some parameter is missing"));
 
-	//for (int i = 0; i < 3; i++) cout << this->options[i] << endl;	
-
 	this->parseFilter();
-	this->fillMap();
-	//this->printSockets();
 
 }
 
@@ -155,11 +149,11 @@ void AppDetector::fillMap() {
 						while ((fd = readdir (subdir)) != NULL) {
 							if (string(fd->d_name) == "." || string(fd->d_name) == "..") continue;
 							string path_ = path + "/" + string(fd->d_name);
-							char buff[BUFF];
+							char buff[BUFF] = {0};
 							readlink(path_.c_str(), buff, BUFF);
-							string b = buff;
+							string b = string(buff);
 							size_t ret = b.find("socket");
-							if (ret == b.npos) continue;
+							if (ret == string::npos) continue;
 							long inode = stol(b.substr(8), nullptr, 10);
 
 							string cmdline;
@@ -170,14 +164,14 @@ void AppDetector::fillMap() {
 							string cmd;
 							size_t p = cmdline.find_last_of("/");
 
-							if (p != cmdline.npos)
+							if (p != string::npos)
 								cmd = cmdline.substr(p+1);
 							else
 								cmd = cmdline;
 
 							if (cmd[cmd.length() - 1] == 0) cmd.pop_back();
 
-							if (cmd.find("ssh") != cmd.npos) cmd = "ssh";
+							if (cmd.find("ssh") != string::npos) cmd = "ssh";
 
 							this->sockets.insert(std::pair<long, string>(inode, cmd));
 						}
@@ -201,6 +195,20 @@ void AppDetector::printSockets() {
 	}
 }
 
+void AppDetector::clearSockets() {
+	this->sockets.clear();
+}
+
+void AppDetector::clearAll() {
+	this->clearSockets();
+	this->table.tmpClear();
+}
+
+void AppDetector::compareAndSwitchTable() {
+	this->table.compare();
+	this->table.swap();
+}
+
 void AppDetector::startDetection() {
 	size_t pos = 0;
 	long interval;
@@ -214,15 +222,15 @@ void AppDetector::startDetection() {
 
 	while (1) {
 
-		this->table.printFormat(this->filters, this->sockets);
+		this->parseFiles();
+		this->fillMap();
+		this->compareAndSwitchTable();
+
+		this->table.printFormat(this->filters, this->sockets, this->options[PARAM_S]);
+
+		this->clearAll();
 		sleep(interval);
-		break;
 	}
-
-}
-
-void AppDetector::sendSyslog(string msg) {
-
 }
 
 int main(int argc, char **argv){
